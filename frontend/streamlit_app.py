@@ -351,11 +351,15 @@ def main():
                 st.divider()
         
         # 여러 파일 업로드 지원
+        # 업로더 key 초기화
+        if 'file_uploader_key' not in st.session_state:
+            st.session_state.file_uploader_key = "file_uploader"
+        
         uploaded_files = st.file_uploader(
             "문서 파일을 업로드하세요 (여러 파일 선택 가능)",
             type=['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md', 'png', 'jpg', 'jpeg'],
             help="지원 형식: PDF, Word, Excel, PowerPoint, 텍스트, 이미지. 여러 파일을 동시에 선택할 수 있습니다.",
-            key="file_uploader",
+            key=st.session_state.file_uploader_key,
             accept_multiple_files=True
         )
         
