@@ -392,23 +392,40 @@ def main():
                             
                             file_session_id = f"{st.session_state.session_id}_{datetime.now().strftime('%H%M%S%f')}"
                             
+                            # 파일명과 크기로 중복 체크 (같은 파일명과 크기면 기존 파일로 간주)
+                            existing_file_index = next(
+                                (i for i, f in enumerate(st.session_state.processed_files) 
+                                 if f["file_name"] == uploaded_file.name 
+                                 and f["metadata"].get("file_size") == uploaded_file.size), 
+                                None
+                            )
+                            
+                            # 중복 파일이면 기존 파일을 제거하고 새로 처리
+                            if existing_file_index is not None:
+                                # 기존 파일 삭제
+                                old_file_info = st.session_state.processed_files[existing_file_index]
+                                try:
+                                    upload_handler.delete_file(old_file_info["file_id"], old_file_info["metadata"].get("session_id"))
+                                    # 기존 결과 파일도 삭제
+                                    old_result_files = storage.get_results_for_file(old_file_info["file_id"])
+                                    for result_file in old_result_files:
+                                        try:
+                                            result_file.unlink()
+                                        except:
+                                            pass
+                                except:
+                                    pass
+                                # 리스트에서 제거
+                                st.session_state.processed_files.pop(existing_file_index)
+                            
                             # 파일 처리
                             file_result = process_single_file(
                                 uploaded_file, upload_handler, storage, file_session_id,
                                 use_ensemble, use_ollama, ollama_model, output_format
                             )
                             
-                            # 세션 상태에 추가
-                            existing_index = next(
-                                (i for i, f in enumerate(st.session_state.processed_files) 
-                                 if f["file_id"] == file_result["file_id"]), 
-                                None
-                            )
-                            
-                            if existing_index is not None:
-                                st.session_state.processed_files[existing_index] = file_result
-                            else:
-                                st.session_state.processed_files.append(file_result)
+                            # 새 파일을 리스트에 추가 (항상 추가, 중복은 이미 제거됨)
+                            st.session_state.processed_files.append(file_result)
                             
                             processed_count += 1
                             
@@ -431,10 +448,16 @@ def main():
                     
                     # 마지막 처리된 파일을 현재 파일로 설정
                     if st.session_state.processed_files:
-                        last_file = st.session_state.processed_files[-1]
-                        st.session_state.processing_results = last_file["results"]
-                        st.session_state.file_metadata = last_file["metadata"]
-                        st.session_state.current_file_id = last_file["file_id"]
+                        # 새로 처리된 파일들 중 마지막 파일
+                        newly_processed_files = st.session_state.processed_files[-processed_count:] if processed_count > 0 else st.session_state.processed_files
+                        if newly_processed_files:
+                            last_file = newly_processed_files[-1]
+                            st.session_state.processing_results = last_file["results"]
+                            st.session_state.file_metadata = last_file["metadata"]
+                            st.session_state.current_file_id = last_file["file_id"]
+                    
+                    # 파일 업로더 초기화를 위해 key 변경
+                    st.session_state.file_uploader_key = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     
                     st.rerun()
                     
