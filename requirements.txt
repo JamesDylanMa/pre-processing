@@ -1,0 +1,33 @@
+# Core dependencies
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Document parsing libraries
+PyPDF2>=3.0.0
+pdfplumber>=0.10.0
+PyMuPDF>=1.23.0  # Fast and accurate PDF parser (fitz)
+pdfminer.six>=20221105  # Good for text extraction with layout info
+camelot-py[cv]>=0.11.0  # Table extraction from PDFs
+tabula-py>=2.5.0  # Table extraction from PDFs
+python-docx>=1.0.0
+openpyxl>=3.1.0
+python-pptx>=0.6.21
+xlrd>=2.0.1
+
+# HTTP requests for Ollama
+requests>=2.31.0
+
+# Utilities
+python-multipart>=0.0.6
+pathlib2>=2.3.7
+
+# Optional: For enhanced PDF processing
+# pdfminer.six>=20221105
+# pymupdf>=1.23.0
+
+# Optional: For image processing
+# Pillow>=10.0.0
+# opencv-python>=4.8.0
+
+
