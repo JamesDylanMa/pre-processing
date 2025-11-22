@@ -158,8 +158,9 @@ def process_single_file(uploaded_file, upload_handler, storage, file_session_id,
         try:
             from processing.parsers.pdf_easyocr_parser import EasyOCRParser
             easyocr_parser = EasyOCRParser()
-            easyocr_result = easyocr_parser.parse(file_path)
-            if "error" not in easyocr_result:
+            if easyocr_parser.reader is not None:  # Only use if reader initialized successfully
+                easyocr_result = easyocr_parser.parse(file_path)
+                if "error" not in easyocr_result and (easyocr_result.get("text") or easyocr_result.get("pages")):
                 easyocr_result["processing_time"] = time.time()
                 easyocr_result["processor"] = "easyocr_parser"
                 results.append(easyocr_result)
