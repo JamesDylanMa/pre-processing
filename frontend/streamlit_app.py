@@ -212,8 +212,8 @@ def process_single_file(uploaded_file, upload_handler, storage, file_session_id,
                 ollama_result["processor"] = f"ollama_{ollama_model}"
                 results.append(ollama_result)
     
-    # Filter out results with errors
-    valid_results = [r for r in results if "error" not in r and r.get("text") or r.get("tables") or r.get("pages")]
+    # Filter out results with errors or empty results
+    valid_results = [r for r in results if "error" not in r and (r.get("text") or r.get("tables") or r.get("pages") or r.get("metadata"))]
     
     # Score and sort results by quality
     sorted_results = comparator.score_and_sort_results(valid_results)
