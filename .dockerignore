@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Streamlit
+.streamlit/
+
+# Uploads and outputs (will be mounted as volumes)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+cache/*
+!cache/.gitkeep
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Documentation (optional - can include if needed)
+# *.md
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+

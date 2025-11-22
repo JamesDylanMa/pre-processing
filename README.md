@@ -10,6 +10,8 @@
 - 📊 **결과 비교 분석**: 여러 전처리 결과를 비교하여 최적의 방법 추천
 - 🎯 **앙상블 처리**: 여러 처리기를 조합한 복합 처리 지원
 - 💾 **다양한 출력 형식**: JSON, Markdown 형식으로 결과 저장 및 다운로드
+- 🔍 **고급 OCR**: EasyOCR 지원 (80+ 언어, 외부 의존성 없음)
+- 📋 **구조화된 데이터 추출**: Unstructured 라이브러리로 문서 구조 분석
 
 ## 프로젝트 구조
 
@@ -24,6 +26,15 @@ pre-processing/
 ├── processing/           # Processing 레이어
 │   ├── parsers/         # 문서 파서 모듈
 │   │   ├── pdf_parser.py
+│   │   ├── pdf_pymupdf_parser.py
+│   │   ├── pdf_pdfminer_parser.py
+│   │   ├── pdf_pypdf_parser.py
+│   │   ├── pdf_easyocr_parser.py  # EasyOCR (새로 추가)
+│   │   ├── pdf_unstructured_parser.py  # Unstructured (새로 추가)
+│   │   ├── pdf_pdfquery_parser.py  # PDFQuery (새로 추가)
+│   │   ├── pdf_ocr_parser.py
+│   │   ├── pdf_camelot_parser.py
+│   │   ├── pdf_tabula_parser.py
 │   │   ├── word_parser.py
 │   │   ├── excel_parser.py
 │   │   └── ppt_parser.py
@@ -54,7 +65,36 @@ pre-processing/
 pip install -r requirements.txt
 ```
 
-### 3. Ollama 설치 (선택사항)
+### 3. 선택적 의존성 설치
+
+#### OCR 지원 (선택사항)
+
+**EasyOCR (권장)**: 외부 의존성 없이 바로 사용 가능
+```bash
+# requirements.txt에 이미 포함되어 있음
+pip install easyocr pdf2image
+```
+
+**Tesseract OCR (대안)**: 더 많은 언어 지원, 하지만 별도 설치 필요
+- Windows: [Tesseract 설치 가이드](https://github.com/UB-Mannheim/tesseract/wiki)
+- Linux: `sudo apt-get install tesseract-ocr`
+- Mac: `brew install tesseract`
+
+#### 테이블 추출 (선택사항)
+
+**Camelot** (Java 필요):
+```bash
+pip install camelot-py[cv]
+# Java 설치 필요
+```
+
+**Tabula** (Java 필요):
+```bash
+pip install tabula-py
+# Java 설치 필요
+```
+
+### 4. Ollama 설치 (선택사항)
 
 Ollama를 사용하려면 별도로 설치해야 합니다:
 
@@ -115,6 +155,26 @@ streamlit run frontend/streamlit_app.py --server.port 8502
 - **텍스트**: `.txt`, `.md`
 - **이미지**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`
 
+## 지원하는 PDF 파서
+
+### 기본 파서 (항상 사용 가능)
+- **pdfplumber**: 텍스트 및 테이블 추출에 우수
+- **PyMuPDF (fitz)**: 빠르고 정확한 텍스트 추출
+- **pdfminer.six**: 레이아웃 정보를 포함한 텍스트 추출
+- **pypdf**: PyPDF2의 현대적 후속작
+
+### OCR 파서 (스캔된 PDF용)
+- **EasyOCR** (권장): 80+ 언어 지원, 외부 의존성 없음, 더 나은 정확도
+- **Tesseract OCR**: 전통적인 OCR 엔진, 더 많은 언어 지원 (별도 설치 필요)
+
+### 고급 파서
+- **Unstructured**: 구조화되지 않은 문서에서 구조화된 데이터 추출
+- **PDFQuery**: CSS-like selector를 사용한 구조화된 PDF 데이터 추출
+
+### 테이블 추출 파서 (선택사항, Java 필요)
+- **Camelot**: 테이블 추출에 특화
+- **Tabula**: 다양한 테이블 형식 지원
+
 ## Ollama 모델 추천
 
 ### Multi-modal 모델 (이미지 처리 포함)
@@ -129,13 +189,115 @@ streamlit run frontend/streamlit_app.py --server.port 8502
 
 ## 환경 변수 설정
 
-`.env` 파일을 생성하여 다음 변수를 설정할 수 있습니다:
+환경 변수를 설정하여 애플리케이션 동작을 커스터마이징할 수 있습니다.
+
+### 방법 1: 환경 변수 직접 설정
+
+```bash
+# Linux/Mac
+export OLLAMA_BASE_URL=http://localhost:11434
+
+# Windows PowerShell
+$env:OLLAMA_BASE_URL="http://localhost:11434"
+
+# Windows CMD
+set OLLAMA_BASE_URL=http://localhost:11434
+```
+
+### 방법 2: .env 파일 사용
+
+`.env` 파일을 프로젝트 루트에 생성하여 설정할 수 있습니다:
 
 ```env
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-또는 `config.py`에서 직접 수정할 수 있습니다.
+**참고**: `.env` 파일은 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다.
+
+### 방법 3: config.py에서 직접 수정
+
+`config.py` 파일에서 직접 설정 값을 수정할 수 있습니다.
+
+### 주요 환경 변수
+
+- `OLLAMA_BASE_URL`: Ollama 서버 URL (기본값: `http://localhost:11434`)
+
+## Docker를 사용한 배포
+
+### Docker Compose 사용 (권장)
+
+가장 간단한 방법으로, Ollama를 포함한 전체 스택을 실행합니다:
+
+```bash
+# 서비스 시작
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+
+# 서비스 중지
+docker-compose down
+```
+
+### Docker 단독 사용
+
+```bash
+# 이미지 빌드
+docker build -t document-preprocessing .
+
+# 컨테이너 실행
+docker run -d \
+  -p 8501:8501 \
+  -v $(pwd)/uploads:/app/uploads \
+  -v $(pwd)/outputs:/app/outputs \
+  -v $(pwd)/cache:/app/cache \
+  --name doc-preprocessing \
+  document-preprocessing
+
+# 로그 확인
+docker logs -f doc-preprocessing
+
+# 컨테이너 중지
+docker stop doc-preprocessing
+docker rm doc-preprocessing
+```
+
+### 배포 스크립트 사용
+
+#### Linux/Mac
+
+```bash
+# 실행 권한 부여
+chmod +x deploy.sh
+
+# 일반 모드 실행
+./deploy.sh
+
+# Docker 모드 실행
+./deploy.sh --docker
+
+# Docker Compose 모드 실행
+./deploy.sh --compose
+
+# 포트 변경
+./deploy.sh --port 8502
+```
+
+#### Windows PowerShell
+
+```powershell
+# 일반 모드 실행
+.\deploy.ps1
+
+# Docker 모드 실행
+.\deploy.ps1 -Docker
+
+# Docker Compose 모드 실행
+.\deploy.ps1 -Compose
+
+# 포트 변경
+.\deploy.ps1 -Port 8502
+```
 
 ## 다른 서버로 배포
 
@@ -183,6 +345,8 @@ nohup streamlit run frontend/streamlit_app.py > streamlit.log 2>&1 &
 # 또는 systemd 서비스로 등록 (선택사항)
 ```
 
+자세한 배포 가이드는 [DEPLOYMENT.md](DEPLOYMENT.md)를 참조하세요.
+
 ## 문제 해결
 
 ### Ollama 연결 오류
@@ -203,6 +367,12 @@ nohup streamlit run frontend/streamlit_app.py > streamlit.log 2>&1 &
 - pip 업그레이드: `pip install --upgrade pip`
 - 개별 패키지 설치 시도
 
+### 파서 오류
+
+- **Camelot/Tabula 오류**: Java가 설치되어 있는지 확인
+- **OCR 오류**: Tesseract 또는 EasyOCR이 제대로 설치되었는지 확인
+- **Unstructured 오류**: 필요한 의존성이 모두 설치되었는지 확인
+
 ## 라이선스
 
 이 프로젝트는 MIT 라이선스를 따릅니다.
@@ -214,5 +384,3 @@ nohup streamlit run frontend/streamlit_app.py > streamlit.log 2>&1 &
 ## 연락처
 
 프로젝트 관련 문의사항이 있으시면 이슈를 생성해주세요.
-
-

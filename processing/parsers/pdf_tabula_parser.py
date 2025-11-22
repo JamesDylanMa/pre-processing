@@ -77,7 +77,14 @@ class TabulaParser:
                     })
         
         except Exception as e:
-            result["error"] = f"Failed to parse PDF with Tabula: {str(e)}"
+            error_msg = str(e)
+            # Check for common Tabula errors
+            if "java" in error_msg.lower() or "jvm" in error_msg.lower():
+                result["error"] = "Tabula requires Java. Please install Java and ensure it's in your PATH."
+            elif "tabula" in error_msg.lower() and "not found" in error_msg.lower():
+                result["error"] = "Tabula JAR file not found. Please install tabula-py correctly."
+            else:
+                result["error"] = f"Failed to parse PDF with Tabula: {error_msg}"
         
         return result
 

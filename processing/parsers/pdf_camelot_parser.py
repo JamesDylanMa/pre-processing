@@ -82,7 +82,14 @@ class CamelotParser:
             result["tables"] = [{"data": t.df.values.tolist(), "page": t.page} for t in tables]
             
         except Exception as e:
-            result["error"] = f"Failed to parse PDF with Camelot: {str(e)}"
+            error_msg = str(e)
+            # Check for common Camelot errors
+            if "java" in error_msg.lower() or "jvm" in error_msg.lower():
+                result["error"] = "Camelot requires Java. Please install Java and ensure it's in your PATH."
+            elif "ghostscript" in error_msg.lower():
+                result["error"] = "Camelot requires Ghostscript. Please install Ghostscript."
+            else:
+                result["error"] = f"Failed to parse PDF with Camelot: {error_msg}"
         
         return result
 

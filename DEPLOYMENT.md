@@ -42,6 +42,45 @@ Compress-Archive -Path pre-processing -DestinationPath pre-processing.zip
 tar -czf pre-processing.tar.gz pre-processing/
 ```
 
+### 3. 배포 스크립트 사용 (권장)
+
+프로젝트에 포함된 배포 스크립트를 사용하면 더 쉽게 배포할 수 있습니다.
+
+#### Linux/Mac
+
+```bash
+# 실행 권한 부여 (최초 1회)
+chmod +x deploy.sh
+
+# 일반 모드 실행
+./deploy.sh
+
+# Docker 모드 실행
+./deploy.sh --docker
+
+# Docker Compose 모드 실행 (Ollama 포함)
+./deploy.sh --compose
+
+# 포트 변경
+./deploy.sh --port 8502
+```
+
+#### Windows PowerShell
+
+```powershell
+# 일반 모드 실행
+.\deploy.ps1
+
+# Docker 모드 실행
+.\deploy.ps1 -Docker
+
+# Docker Compose 모드 실행 (Ollama 포함)
+.\deploy.ps1 -Compose
+
+# 포트 변경
+.\deploy.ps1 -Port 8502
+```
+
 ## 로컬 서버 배포
 
 ### Windows
@@ -228,9 +267,23 @@ docker run -d \
 docker logs -f doc-preprocessing
 ```
 
-### Docker Compose 사용
+### Docker Compose 사용 (권장)
 
-`docker-compose.yml` 파일 생성:
+프로젝트에 이미 `docker-compose.yml` 파일이 포함되어 있습니다. 배포 스크립트를 사용하거나 수동으로 실행할 수 있습니다:
+
+#### 배포 스크립트 사용
+
+```bash
+# Linux/Mac
+./deploy.sh --compose
+
+# Windows PowerShell
+.\deploy.ps1 -Compose
+```
+
+#### 수동 실행
+
+`docker-compose.yml` 파일 내용:
 
 ```yaml
 version: '3.8'
@@ -263,7 +316,17 @@ volumes:
 실행:
 
 ```bash
+# 서비스 시작
 docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+
+# 서비스 중지
+docker-compose down
+
+# 재빌드 후 시작
+docker-compose up -d --build
 ```
 
 ## 서비스 자동 시작 설정

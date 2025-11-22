@@ -140,5 +140,54 @@ class ResultComparator:
         scored.sort(key=lambda x: x["score"], reverse=True)
         
         return scored[0] if scored else {}
+    
+    def score_and_sort_results(self, results: List[Dict]) -> List[Dict]:
+        """
+        Score and sort results by quality
+        
+        Args:
+            results: List of result dictionaries
+            
+        Returns:
+            Sorted list of results (best first)
+        """
+        if not results:
+            return []
+        
+        # Calculate scores
+        scored_results = []
+        for result in results:
+            score = 0
+            text = result.get("text", "")
+            
+            # Text length score
+            score += len(text) / 1000
+            
+            # Tables score
+            if result.get("tables") or result.get("sheets"):
+                score += 10
+            
+            # Metadata score
+            if result.get("metadata"):
+                score += 5
+            
+            # Error penalty
+            if "error" in result:
+                score -= 50
+            
+            # Statistics bonus (from AI processor)
+            if result.get("statistics"):
+                score += 3
+            
+            scored_results.append({
+                "result": result,
+                "score": score
+            })
+        
+        # Sort by score (descending)
+        scored_results.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Return sorted results
+        return [item["result"] for item in scored_results]
 
 
