@@ -444,7 +444,7 @@ def main():
                             # 파일 처리
                             file_result = process_single_file(
                                 uploaded_file, upload_handler, storage, file_session_id,
-                                use_ensemble, use_ollama, ollama_model, output_format
+                                use_ensemble, use_curator, use_ollama, ollama_model, output_format
                             )
                             
                             # 새 파일을 리스트에 추가 (항상 추가, 중복은 이미 제거됨)
