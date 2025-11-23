@@ -53,7 +53,7 @@ if 'current_file_id' not in st.session_state:
 
 
 def process_single_file(uploaded_file, upload_handler, storage, file_session_id, 
-                       use_ensemble, use_ollama, ollama_model, output_format):
+                       use_ensemble, use_curator, use_ollama, ollama_model, output_format):
     """단일 파일 처리 함수"""
     # Save uploaded file
     metadata = upload_handler.save_uploaded_file(uploaded_file, file_session_id)
@@ -120,6 +120,23 @@ def process_single_file(uploaded_file, upload_handler, storage, file_session_id,
     ai_result = ai_processor.process(file_path, file_type)
     ai_result["processing_time"] = time.time()
     results.append(ai_result)
+    
+    # Text curation processing (NeMo Curator-inspired)
+    if use_curator:
+        try:
+            from processing.processors.curator_processor import CuratorProcessor
+            curator_processor = CuratorProcessor(
+                enable_cleaning=True,
+                enable_quality_check=True,
+                enable_language_detection=True
+            )
+            curator_result = curator_processor.process(file_path, file_type)
+            if "error" not in curator_result:
+                curator_result["processing_time"] = time.time()
+                curator_result["processor"] = "curator_processor"
+                results.append(curator_result)
+        except (ImportError, Exception) as e:
+            pass
     
     # Ensemble processing
     if use_ensemble:
@@ -259,6 +276,8 @@ def main():
         st.subheader("처리 옵션")
         use_ensemble = st.checkbox("앙상블 처리 사용", value=True)
         use_comparison = st.checkbox("결과 비교 활성화", value=True)
+        use_curator = st.checkbox("텍스트 큐레이션 사용 (NeMo Curator)", value=True, 
+                                  help="텍스트 정리, 품질 평가, 언어 감지 기능을 활성화합니다")
         use_ollama = st.checkbox("Ollama AI 처리 사용", value=False)
         
         # Ollama settings
@@ -522,6 +541,7 @@ def main():
                     "camelot_parser": "PDF Parser (Camelot - Tables)",
                     "tabula_parser": "PDF Parser (Tabula - Tables)",
                     "document_ai": "Document AI Processor",
+                    "curator_processor": "Text Curator (NeMo Curator-inspired)",
                     "ensemble_processor": "Ensemble Processor",
                     "base_parser_pdfplumber": "Base Parser (pdfplumber)",
                     "word_parser": "Word Parser",
@@ -544,6 +564,26 @@ def main():
                             disabled=True,
                             key=f"text_area_{i}_{processor_name}"
                         )
+                    
+                    if result.get("curation_metadata"):
+                        st.subheader("텍스트 큐레이션 정보")
+                        curation_meta = result["curation_metadata"]
+                        
+                        if curation_meta.get("quality"):
+                            quality = curation_meta["quality"]
+                            st.metric("품질 점수", f"{quality.get('quality_score', 0):.1f}/100")
+                            st.write(f"**통과한 필터**: {', '.join(quality.get('passed_filters', []))}")
+                            if quality.get('failed_filters'):
+                                st.write(f"**실패한 필터**: {', '.join(quality.get('failed_filters', []))}")
+                        
+                        if curation_meta.get("language"):
+                            lang = curation_meta["language"]
+                            if lang.get("available"):
+                                st.write(f"**감지된 언어**: {lang.get('language', 'unknown')} (신뢰도: {lang.get('confidence', 0):.2%})")
+                        
+                        if curation_meta.get("cleaning"):
+                            cleaning = curation_meta["cleaning"]
+                            st.write(f"**정리 통계**: {cleaning.get('removed_chars', 0)}자 제거 ({cleaning.get('reduction_percent', 0):.1f}% 감소)")
                     
                     if result.get("metadata"):
                         st.subheader("메타데이터")
