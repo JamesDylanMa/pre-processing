@@ -176,6 +176,13 @@ streamlit run frontend/streamlit_app.py --server.port 8502
 - **Camelot**: 테이블 추출에 특화
 - **Tabula**: 다양한 테이블 형식 지원
 
+### 텍스트 큐레이션 프로세서 (NeMo Curator 기반)
+- **Text Curator**: NVIDIA NeMo Curator에서 영감을 받은 텍스트 큐레이션
+  - **텍스트 정리**: 유니코드 정규화, URL/이메일 제거, 과도한 공백 제거
+  - **품질 평가**: 휴리스틱 필터 기반 품질 점수 (0-100점)
+  - **언어 감지**: 다국어 텍스트의 언어 자동 감지 (langdetect 사용)
+  - **중복 제거**: 정확한 중복 및 의미론적 중복 제거 (sentence-transformers 사용)
+
 ## Ollama 모델 추천
 
 ### Multi-modal 모델 (이미지 처리 포함)
